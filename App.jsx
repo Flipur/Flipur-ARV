@@ -9,6 +9,7 @@ export default function App() {
 
   const handleAnalyze = async () => {
     setLoading(true);
+    setResult(null);
     try {
       // 1. Fetch Property Details
       const { data: searchResult } = await window.axios.get(
@@ -20,6 +21,10 @@ export default function App() {
           },
         }
       );
+
+      if (!searchResult.bundle?.length) {
+        throw new Error("No property data found.");
+      }
 
       const property = searchResult.bundle[0];
       const zpid = property.zpid;
@@ -37,14 +42,18 @@ export default function App() {
 
       const comps = compsResult.bundle;
 
-      // 3. Flipur Comping Logic (simplified)
+      if (!comps?.length) {
+        throw new Error("No comps available for this property.");
+      }
+
+      // 3. Flipur Comping Logic
       const arv = comps.reduce((acc, comp) => acc + comp.zestimate, 0) / comps.length;
 
       const MAO =
         arv -
-        0.1 * arv - // 10% hard money/closing
-        0.07 * arv - // 7% dispo/realtor
-        50000; // Example rehab baseline
+        0.1 * arv - // hard money/closing
+        0.07 * arv - // dispo/realtor
+        50000;
 
       // 4. Warnings
       const warnings = [];
@@ -58,8 +67,8 @@ export default function App() {
         mao: Math.round(MAO).toLocaleString(),
       });
     } catch (error) {
-      console.error("Zillow fetch error:", error);
-      setResult({ error: "Could not retrieve property data." });
+      console.error("Analysis error:", error);
+      setResult({ error: error.message || "Could not retrieve property data." });
     } finally {
       setLoading(false);
     }
@@ -74,7 +83,7 @@ export default function App() {
         placeholder="Enter property address"
         style={{ marginRight: "10px", padding: "5px" }}
       />
-      <button onClick={handleAnalyze} disabled={loading}>
+      <button onClick={handleAnalyze} disabled={loading || !address.trim()}>
         {loading ? "Analyzing..." : "Analyze"}
       </button>
 
