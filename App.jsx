@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 
 export default function App() {
   const [address, setAddress] = useState("");
@@ -12,7 +11,7 @@ export default function App() {
     setLoading(true);
     try {
       // 1. Fetch Property Details
-      const { data: searchResult } = await axios.get(
+      const { data: searchResult } = await window.axios.get(
         `https://api.bridgedataoutput.com/api/v2/zestimates_v2/search`,
         {
           params: {
@@ -26,7 +25,7 @@ export default function App() {
       const zpid = property.zpid;
 
       // 2. Fetch Comparable Properties
-      const { data: compsResult } = await axios.get(
+      const { data: compsResult } = await window.axios.get(
         `https://api.bridgedataoutput.com/api/v2/zestimates_v2/property/${zpid}/comps`,
         {
           params: {
